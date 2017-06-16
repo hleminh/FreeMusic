@@ -9,12 +9,10 @@ import java.util.List;
 public class MusicType {
     private String id;
     private String name;
-    private List<MusicType> subgenres;
 
-    public MusicType(String id, String name, List<MusicType> subgenres) {
+    public MusicType(String id, String name) {
         this.id = id;
         this.name = name;
-        this.subgenres = subgenres;
     }
 
     public String getId() {
@@ -32,4 +30,5 @@ public class MusicType {
                 ", name='" + name + '\'' +
                 '}';
     }
+
 }

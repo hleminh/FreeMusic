@@ -7,13 +7,9 @@ import java.util.List;
  */
 
 public class MediaType {
-    private List<MusicType> subgenres;
+    private Subgenres subgenres;
 
-    public MediaType(List<MusicType> musicTypeList) {
-        this.subgenres = subgenres;
-    }
-
-    public List<MusicType> getSubgenres() {
+    public Subgenres getSubgenres() {
         return subgenres;
     }
 }

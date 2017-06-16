@@ -15,12 +15,14 @@ import com.example.hoang.freemusic.adapters.MusicTypeAdapter;
 import com.example.hoang.freemusic.databases.models.MusicTypeModel;
 import com.example.hoang.freemusic.events.OnClickMusicTypeModel;
 import com.example.hoang.freemusic.managers.ScreenManager;
+import com.example.hoang.freemusic.networks.music_type.MainObject;
 import com.example.hoang.freemusic.networks.music_type.MediaType;
 import com.example.hoang.freemusic.networks.music_type.MusicType;
 import com.example.hoang.freemusic.networks.music_type.MusicTypesService;
 import com.example.hoang.freemusic.networks.RetrofitFactory;
 
 import org.greenrobot.eventbus.EventBus;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,35 +59,33 @@ public class MusicTypeFragment extends Fragment implements View.OnClickListener 
         musicTypeModelList = new ArrayList<>();
         musicTypeList = new ArrayList<>();
         musicTypeAdapter = new MusicTypeAdapter(musicTypeModelList, getContext());
-//        RetrofitFactory.getInstance().createService(MusicTypesService.class).getMusicTypes().enqueue(new Callback<List<MediaType>>() {
-//            @Override
-//            public void onResponse(Call<List<MediaType>> call, Response<List<MediaType>> response) {
-//                if (response.code() == 200) {
-//                    MediaType mediaType = response.body().get(3);
-//                    for (MusicType musicType : mediaType.getSubgenres()) {
-//                        MusicTypeModel musicTypeModel = new MusicTypeModel();
-//                        musicTypeModel.setId(musicType.getId());
-//                        musicTypeModel.setKey(musicType.getName());
-//                        if (getResources().getIdentifier("genre_x2_" + musicType.getId(), "raw", getActivity().getPackageName()) != 0)
-//                            musicTypeModel.setIdImage(getResources().getIdentifier("genre_x2_" + musicType.getId(), "raw", getActivity().getPackageName()));
-//                        musicTypeList.add(musicType);
-//                        musicTypeModelList.add(musicTypeModel);
-//                    }
-//                    musicTypeAdapter.notifyDataSetChanged();
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<MediaType>> call, Throwable t) {
-//                Toast.makeText(getContext(), "No connection", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-        MusicTypeModel musicTypeModel = new MusicTypeModel();
-        musicTypeModel.setId("");
-        musicTypeModel.setKey("All");
-        musicTypeModel.setIdImage(getResources().getIdentifier("genre_x2_" + musicTypeModel.getId(), "raw", getActivity().getPackageName()));
-        musicTypeModelList.add(musicTypeModel);
-        musicTypeAdapter.notifyDataSetChanged();
+        RetrofitFactory.getInstance().createService(MusicTypesService.class).getMusicTypes().enqueue(new Callback<MainObject>() {
+            @Override
+            public void onResponse(Call<MainObject> call, Response<MainObject> response) {
+                if (response.code() == 200) {
+                    for (MusicType musicType : response.body().getMediaType().getSubgenres().getAllSubgenres()) {
+                        MusicTypeModel musicTypeModel = new MusicTypeModel();
+                        musicTypeModel.setIdImage(getResources().getIdentifier("genre_x2_" + musicType.getId(), "raw", getActivity().getPackageName()));
+                        musicTypeModel.setId(musicType.getId());
+                        musicTypeModel.setKey(musicType.getName());
+                        musicTypeList.add(musicType);
+                        musicTypeModelList.add(musicTypeModel);
+                    }
+                }
+                musicTypeAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFailure(Call<MainObject> call, Throwable t) {
+                Toast.makeText(getContext(), "No connection", Toast.LENGTH_SHORT).show();
+            }
+        });
+//        MusicTypeModel musicTypeModel = new MusicTypeModel();
+//        musicTypeModel.setId("");
+//        musicTypeModel.setKey("All");
+//        musicTypeModel.setIdImage(getResources().getIdentifier("genre_x2_" + musicTypeModel.getId(), "raw", getActivity().getPackageName()));
+//        musicTypeModelList.add(musicTypeModel);
+//        musicTypeAdapter.notifyDataSetChanged();
     }
 
     private void setupUI(View view) {

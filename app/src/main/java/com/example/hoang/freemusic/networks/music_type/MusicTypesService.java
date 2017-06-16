@@ -1,5 +1,7 @@
 package com.example.hoang.freemusic.networks.music_type;
 
+import com.example.hoang.freemusic.networks.top_song.*;
+
 import java.util.List;
 
 import retrofit2.Call;
@@ -11,5 +13,5 @@ import retrofit2.http.GET;
 
 public interface MusicTypesService {
     @GET("https://itunes.apple.com/WebObjects/MZStoreServices.woa/ws/genres")
-    Call<List<MediaType>> getMusicTypes();
+    Call<MainObject> getMusicTypes();
 }
