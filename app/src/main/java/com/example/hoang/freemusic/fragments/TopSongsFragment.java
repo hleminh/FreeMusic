@@ -10,11 +10,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.example.hoang.freemusic.R;
 import com.example.hoang.freemusic.adapters.TopSongAdapter;
+import com.example.hoang.freemusic.databases.RealmHandle;
 import com.example.hoang.freemusic.databases.models.MusicTypeModel;
 import com.example.hoang.freemusic.databases.models.TopSongModel;
 import com.example.hoang.freemusic.events.OnClickMusicTypeModel;
@@ -54,9 +57,12 @@ public class TopSongsFragment extends android.support.v4.app.Fragment implements
     RecyclerView rvTopSongs;
     @BindView(R.id.toolbar)
     Toolbar toolbar;
+    @BindView(R.id.tg_fav)
+    ToggleButton tgFav;
 
     private List<TopSongModel> topSongModelList;
     private TopSongAdapter topSongAdapter;
+    private MusicTypeModel musicTypeModel;
 
     @Nullable
     @Override
@@ -68,6 +74,9 @@ public class TopSongsFragment extends android.support.v4.app.Fragment implements
 
     private void setupUI(View view) {
         ButterKnife.bind(this, view);
+        topSongModelList = new ArrayList<>();
+        topSongAdapter = new TopSongAdapter(topSongModelList, getContext());
+        topSongAdapter.setOnClickListener(this);
         if (!EventBus.getDefault().isRegistered(this))
             EventBus.getDefault().register(this);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
@@ -77,26 +86,37 @@ public class TopSongsFragment extends android.support.v4.app.Fragment implements
                 ScreenManager.backFragment(getActivity().getSupportFragmentManager());
             }
         });
-        topSongAdapter.setOnClickListener(this);
+        tgFav.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                RealmHandle.getInstance().setFavoriteMusicType(musicTypeModel, isChecked);
+            }
+        });
     }
 
     @Subscribe(sticky = true)
     public void onReceiveMusicType(OnClickMusicTypeModel onClickMusicTypeModel) {
-        MusicTypeModel musicTypeModel = onClickMusicTypeModel.getMusicTypeModel();
+        musicTypeModel = onClickMusicTypeModel.getMusicTypeModel();
         tvMusicType.setText(musicTypeModel.getKey());
         Picasso.with(getContext()).load(musicTypeModel.getIdImage()).into(ivMusicType);
+        if (RealmHandle.getInstance().getListTopSongModel(musicTypeModel).size() != 0) {
+            topSongModelList.clear();
+            topSongModelList.addAll(RealmHandle.getInstance().getListTopSongModel(musicTypeModel));
+            topSongAdapter.notifyDataSetChanged();
+        }
+        tgFav.setChecked(musicTypeModel.isFavorite());
         loadData(musicTypeModel);
     }
 
-    private void loadData(MusicTypeModel musicTypeModel) {
-        topSongModelList = new ArrayList<>();
-        topSongAdapter = new TopSongAdapter(topSongModelList, getContext());
+    private void loadData(final MusicTypeModel musicTypeModel) {
         GetTopSongsService service = RetrofitFactory.getInstance().createService(GetTopSongsService.class);
         service.getTopSongs(musicTypeModel.getId()).enqueue(new Callback<MainObject>() {
             @Override
             public void onResponse(Call<MainObject> call, Response<MainObject> response) {
                 MainObject mainObject = response.body();
                 Feed feed = mainObject.getFeed();
+                RealmHandle.getInstance().clearTopSongList(musicTypeModel);
+                topSongModelList.clear();
                 for (EntryObject entryObject : feed.getEntry()) {
                     TopSongModel topSongModel = new TopSongModel();
                     topSongModel.setSongName(entryObject.getNameObject().getLabel());
@@ -105,6 +125,7 @@ public class TopSongsFragment extends android.support.v4.app.Fragment implements
                     topSongModel.setLargeImage(entryObject.getImageObjectList().get(2).getLabel());
                     System.out.println(topSongModel.toString());
                     topSongModelList.add(topSongModel);
+                    RealmHandle.getInstance().addTopSongToMusicType(musicTypeModel, topSongModel);
                 }
                 topSongAdapter.notifyDataSetChanged();
             }
@@ -125,7 +146,7 @@ public class TopSongsFragment extends android.support.v4.app.Fragment implements
     public void onClick(View v) {
         int position = rvTopSongs.getChildLayoutPosition(v);
         System.out.println(topSongModelList.get(position).toString());
-        MusicManager.loadSearchSong(getContext(),topSongModelList.get(position));
+        MusicManager.loadSearchSong(getContext(), topSongModelList.get(position));
         EventBus.getDefault().post(new OnClickTopSong(topSongModelList.get(position)));
     }
 }

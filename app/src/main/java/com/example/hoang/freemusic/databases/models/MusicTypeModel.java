@@ -1,13 +1,28 @@
 package com.example.hoang.freemusic.databases.models;
 
+import java.util.List;
+
+import io.realm.RealmList;
+import io.realm.RealmObject;
+
 /**
  * Created by Hoang on 5/28/2017.
  */
 
-public class MusicTypeModel {
+public class MusicTypeModel extends RealmObject{
     private String id;
     private String key;
     private int idImage;
+    private RealmList<TopSongModel> topSongModelList = new RealmList<>();
+    private boolean isFavorite;
+
+    public RealmList<TopSongModel> getTopSongModelList() {
+        return topSongModelList;
+    }
+
+    public void setTopSongModelList(RealmList<TopSongModel> topSongModelList) {
+        this.topSongModelList = topSongModelList;
+    }
 
     public String getId() {
         return id;
@@ -31,6 +46,14 @@ public class MusicTypeModel {
 
     public void setIdImage(int idImage) {
         this.idImage = idImage;
+    }
+
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        isFavorite = favorite;
     }
 
     @Override

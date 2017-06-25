@@ -1,10 +1,12 @@
 package com.example.hoang.freemusic.databases.models;
 
+import io.realm.RealmObject;
+
 /**
  * Created by Hoang on 5/30/2017.
  */
 
-public class TopSongModel {
+public class TopSongModel extends RealmObject{
     private String songName;
     private String smallImage;
     private String largeImage;

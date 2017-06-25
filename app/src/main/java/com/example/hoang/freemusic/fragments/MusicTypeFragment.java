@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 
 import com.example.hoang.freemusic.R;
 import com.example.hoang.freemusic.adapters.MusicTypeAdapter;
+import com.example.hoang.freemusic.databases.RealmHandle;
 import com.example.hoang.freemusic.databases.models.MusicTypeModel;
 import com.example.hoang.freemusic.events.OnClickMusicTypeModel;
 import com.example.hoang.freemusic.managers.ScreenManager;
@@ -50,7 +52,16 @@ public class MusicTypeFragment extends Fragment implements View.OnClickListener 
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_music_type, container, false);
 
-        loadData();
+        if (RealmHandle.getInstance().getListMusicTypeModel().size() == 0) {
+            loadData();
+        }
+        else{
+            musicTypeModelList = new ArrayList<>();
+            musicTypeModelList.addAll(RealmHandle.getInstance().getListMusicTypeModel());
+            System.out.println("Realm: " + musicTypeModelList.size());
+            musicTypeAdapter = new MusicTypeAdapter(musicTypeModelList, getContext());
+            musicTypeAdapter.notifyDataSetChanged();
+        }
         setupUI(view);
         return view;
     }
@@ -70,9 +81,11 @@ public class MusicTypeFragment extends Fragment implements View.OnClickListener 
                         musicTypeModel.setKey(musicType.getName());
                         musicTypeList.add(musicType);
                         musicTypeModelList.add(musicTypeModel);
+                        RealmHandle.getInstance().addMusicTypeToRealm(musicTypeModel);
                     }
                 }
                 musicTypeAdapter.notifyDataSetChanged();
+                System.out.println("Realm: " + RealmHandle.getInstance().getListMusicTypeModel().size());
             }
 
             @Override
